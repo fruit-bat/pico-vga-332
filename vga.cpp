@@ -524,7 +524,7 @@ void VgaTerm()
 void ScanlineTypeInit(const sVmode* v)
 {
 	u8* d = ScanlineType;
-	int i, k;
+	int i;
 
 	// line 0 is not used
 	*d++ = LINE_DARK;
@@ -544,14 +544,14 @@ void ScanlineTypeInit(const sVmode* v)
 }
 
 // initialize videomode (returns False on bad configuration)
-void VgaInit(const sVmode* vmode, u8* buf, int width, int height, int stride)
+void VgaInit(const sVmode* vmode, int width, int height)
 {
-	int i;
-
-printf("Setting up spin lock...\n");
-	queue_init_with_spinlock(&q_vga_valid,   sizeof(void*),  8, next_striped_spin_lock_num());
-printf("done setting up spin lock...\n");
-
+	queue_init_with_spinlock(
+	  &q_vga_valid,
+	  sizeof(void*),
+	  8,
+	  next_striped_spin_lock_num()
+	);
 
 	// framebuffer = buf;
 	fbwidth = width;

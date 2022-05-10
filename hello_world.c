@@ -46,7 +46,7 @@ void __not_in_flash_func(core1_main)() {
   printf("Core 1 running...\n");
 
 
-  VgaInit(vmode,(u8*)0,640,480,320);
+  VgaInit(vmode,640,480);
 
   while (1) {
 

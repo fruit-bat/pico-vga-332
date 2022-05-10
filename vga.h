@@ -49,13 +49,11 @@ extern u32	LineBufSync[10]; // vertical synchronization
 extern u32	CtrlBuf1[CBUF_MAX];	// control pairs: u32 count, read address (must be terminated with [0,0])
 extern u32	CtrlBuf2[CBUF_MAX];	// control pairs: u32 count, read address (must be terminated with [0,0])
 
-
 // initialize scanline type table
 void ScanlineTypeInit(const sVmode* v);
 
 // initialize videomode (returns False on bad configuration)
-// - All layer modes must use same layer program (LAYERMODE_BASE = overlapped layers are OFF)
-void VgaInit(const sVmode* vmode, u8* buf, int width, int height, int stride); //, u8 layer1mode=LAYERMODE_BASE, u8 layer2mode=LAYERMODE_BASE, u8 layer3mode=LAYERMODE_BASE);
+void VgaInit(const sVmode* vmode, int width, int height); 
 
 // wait for VSync scanline
 void WaitVSync();

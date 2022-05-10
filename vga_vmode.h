@@ -118,10 +118,11 @@ enum {
 // preset videomode resolution
 enum {
 	RES_ZX = 0,	// 256x192
-	RES_CGA,	// 320x200
-	RES_QVGA,	// 320x240
-	RES_EGA,	// 512x400
-	RES_VGA,	// 640x480
+	RES_CGA,	  // 320x200
+	RES_QVGA,	  // 320x240
+	RES_EGA,	  // 512x400
+	RES_VGA,	  // 640x480
+	RES_HVGA,   // 640x320
 
 	RES_MAX
 };

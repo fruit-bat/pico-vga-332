@@ -88,6 +88,7 @@ const sVideo* VideoResTab[DEV_MAX*RES_MAX] =
 	&VideoVGA,	// RES_QVGA,	// 320x240
 	&VideoEGA,	// RES_EGA,	// 528x400
 	&VideoVGA,	// RES_VGA,	// 640x480
+	&VideoVGA,	// RES_VGA,	// 640x480
 };
 
 // required resolution width x height
@@ -98,6 +99,7 @@ const u16 VideoResReq[RES_MAX*2] =
 	320, 240,	// RES_QVGA,	// 320x240
 	512, 400,	// RES_EGA,	// 512x400
 	640, 480, 	// RES_VGA,	// 640x480
+	640, 480, 	// RES_HVGA,	// 640x240
 };
 
 
