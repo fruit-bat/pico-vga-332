@@ -8,7 +8,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-include(../PicoDVI/software/apps/pico-dvi-menu/CMakeLists.txt)
+add_definitions(-DPCS_COLS=80 -DPCS_ROWS=60)
+
+add_subdirectory(/home/pi/pico/PicoDVI/software/apps/pico-dvi-menu/ "${CMAKE_CURRENT_BINARY_DIR}/pico-dvi-menu")
 
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
@@ -17,7 +19,7 @@ add_compile_options(-Wall
         )
         
 add_executable(hello_world
-    hello_world.c
+    hello_world.cpp
     vga_vmode.cpp
     vga.cpp
 )
@@ -26,13 +28,13 @@ pico_generate_pio_header(hello_world
   ${CMAKE_CURRENT_LIST_DIR}/picovga.pio
 )
 
-target_link_libraries(hello_world 
+target_link_libraries(hello_world
   pico_stdlib 
   pico_multicore
   hardware_dma
   hardware_irq
   hardware_pio
-  pico_vga_menu
+   pico_vga_menu
 )
 
 pico_enable_stdio_usb(hello_world 1)

@@ -6,14 +6,14 @@
 #include "VGA_font8x8.h"
 
 #define VREG_VSEL VREG_VOLTAGE_1_20
-#define PCS_COLS 80
-#define PCS_ROWS 60
+#include "PicoCharRendererVga.h"
 
-__attribute__((aligned(4))) uint16_t charbuffer[PCS_COLS * PCS_ROWS];
+// __attribute__((aligned(4))) uint16_t charbuffer[PCS_COLS * PCS_ROWS];
 
 struct semaphore dvi_start_sem;
 static const sVmode* vmode = NULL;
 
+/*
 static u32 nibblebits[16];
 
 
@@ -40,6 +40,7 @@ void __not_in_flash_func(VgaRenderLine6)(uint32_t* buf, int y, uint32_t frames) 
     buf[np++] = nibblebits[b >> 4];
   }
 }
+*/
 
 void __not_in_flash_func(core1_main)() {
   sem_acquire_blocking(&dvi_start_sem);
@@ -51,9 +52,9 @@ void __not_in_flash_func(core1_main)() {
   while (1) {
 
     VgaLineBuf *linebuf = get_vga_line();
-    u32* buf = (u32*)&(linebuf->line);
-    int y = linebuf->row;
-    VgaRenderLine6(buf, y, linebuf->frame);
+    uint32_t* buf = (uint32_t*)&(linebuf->line);
+    uint32_t y = linebuf->row;
+    pcw_prepare_vga332_scanline_80(buf, y, linebuf->frame);
 
   }
   __builtin_unreachable();
@@ -62,7 +63,7 @@ void __not_in_flash_func(core1_main)() {
 int main(){
   vreg_set_voltage(VREG_VSEL);
   sleep_ms(10);
-
+/*
   for(int i = 0; i < 16; ++i) {
     u32 a = 0;
     for(int j = 0; j < 4; ++j) {
@@ -71,6 +72,7 @@ int main(){
     nibblebits[i] = a;
   }
 
+
   for (int x = 0; x < PCS_COLS; ++x) {
     for (int y = 0; y < 60; ++y) {
       int i = x + (y * PCS_COLS);
@@ -78,10 +80,11 @@ int main(){
       charbuffer[i] = (i & 0x7f) | j;
     }
   }
-
+*/
   //Initialise I/O
   stdio_init_all(); 
-
+  pcw_init_renderer();
+  
   vmode = Video(DEV_VGA, RES_VGA);
   
   printf("Core 0 VCO %d\n", Vmode.vco);
