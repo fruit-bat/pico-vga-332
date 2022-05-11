@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
+include(../PicoDVI/software/apps/pico-dvi-menu/CMakeLists.txt)
+
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
         -Wno-unused-function # we have some for the docs that aren't called
@@ -30,6 +32,7 @@ target_link_libraries(hello_world
   hardware_dma
   hardware_irq
   hardware_pio
+  pico_vga_menu
 )
 
 pico_enable_stdio_usb(hello_world 1)
