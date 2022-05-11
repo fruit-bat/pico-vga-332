@@ -99,7 +99,7 @@ const u16 VideoResReq[RES_MAX*2] =
 	320, 240,	// RES_QVGA,	// 320x240
 	512, 400,	// RES_EGA,	// 512x400
 	640, 480, 	// RES_VGA,	// 640x480
-	640, 480, 	// RES_HVGA,	// 640x240
+	640, 240, 	// RES_HVGA,	// 640x240
 };
 
 
@@ -380,7 +380,7 @@ const sVmode* Video(u8 dev, u8 res)
 	Cfg.video = v; // video timings
 	Cfg.width = w; // screen width
 	Cfg.height = h; // screen height
-	Cfg.dbly = h <= v->vmax/2; // double scanlines
+	Cfg.dbly = true || h <= v->vmax/2; // double scanlines
 	VgaCfg(&Cfg, &Vmode); // calculate videomode setup
 
 	// initialize system clock

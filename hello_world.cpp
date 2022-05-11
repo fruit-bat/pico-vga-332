@@ -85,7 +85,7 @@ int main(){
   stdio_init_all(); 
   pcw_init_renderer();
   
-  vmode = Video(DEV_VGA, RES_VGA);
+  vmode = Video(DEV_VGA, RES_HVGA);
   
   printf("Core 0 VCO %d\n", Vmode.vco);
 

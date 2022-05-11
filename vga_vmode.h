@@ -122,7 +122,7 @@ enum {
 	RES_QVGA,	  // 320x240
 	RES_EGA,	  // 512x400
 	RES_VGA,	  // 640x480
-	RES_HVGA,   // 640x320
+	RES_HVGA,   // 640x240
 
 	RES_MAX
 };

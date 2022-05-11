@@ -22,11 +22,13 @@ sVmode CurVmode;		// copy of current videomode table
 volatile int ScanLine;		// current scan line 1...
 volatile u32 Frame;		// frame counter
 volatile int BufInx;		// current buffer set (0..1)
+volatile int LineInx;    // current line data
 volatile Bool VSync;		// current scan line is vsync or dark
 
 // line buffers
 ALIGNED VgaLineBuf	LineBuf1; // scanline 1 image data
 ALIGNED VgaLineBuf	LineBuf2; // scanline 2 image data
+VgaLineBuf* VgaLineBufs[] = {&LineBuf1, &LineBuf2};
 
 // static u8* framebuffer;
 static int fbwidth;
@@ -41,7 +43,7 @@ u32	LineBufSync[10];    // vertical synchronization
 // control buffers (BufInx = 0 running CtrlBuf1 and preparing CtrlBuf2, BufInx = 1 running CtrlBuf2 and preparing CtrlBuf1)
 u32	CtrlBuf1[CBUF_MAX]; // base layer control pairs: u32 count, read address (must be terminated with [0,0])
 u32	CtrlBuf2[CBUF_MAX]; // base layer control pairs: u32 count, read address (must be terminated with [0,0])
-
+u32* CtrlBufs[] = {CtrlBuf1, CtrlBuf2};
 // next control buffer
 u32*	CtrlBufNext;
 
@@ -175,13 +177,10 @@ int __not_in_flash_func(VgaBufProcess)()
 	}
 	ScanLine = line;	// store new scanline
 
-	int y0 = -1;
 	u8 linetype = ScanlineType[line];
 	switch (linetype)
 	{
 	case LINE_IMG:		// progressive image 0, 1, 2,...
-		y0 = line - CurVmode.vfirst;
-		if (CurVmode.dbly) y0 >>= 1;
 		VSync = False;	// not vsync
 		break;
 	default:
@@ -213,24 +212,13 @@ extern "C" void __not_in_flash_func(VgaLine)()
 	// prepare buffers to be processed next
 	VgaLineBuf* dbuf; // line buffer
 	
-	u32* cbuf; // control buffer
-	if (bufinx == 0)
-	{
-		dbuf = &LineBuf1;
-		cbuf = CtrlBuf1;
-	}
-	else
-	{
-		dbuf = &LineBuf2;
-		cbuf = CtrlBuf2;
-	}
+	u32* cbuf = CtrlBufs[bufinx];
 	CtrlBufNext = cbuf;
 
 	// next rendered scanline
 	int line = ScanLine;	// current scanline
 	line++; // next line to render
 	if (line > CurVmode.vtot) line = 1;
-	int y0;
 
 	u8 linetype = ScanlineType[line];
 #ifdef VGA_VSYNC
@@ -258,15 +246,20 @@ extern "C" void __not_in_flash_func(VgaLine)()
 	case LINE_IMG:		// progressive image 0, 1, 2,...
 		int y = line - CurVmode.vfirst;
 		if (CurVmode.dbly) {
-			y0 = y >> 1;
-			// TODO broken buffer selection
- //     if ((y & 1) == 0) { 
-				dbuf->row = y0;
+      if ((y & 1) == 0) { 
+				LineInx ^= 1;
+			  dbuf = VgaLineBufs[LineInx];
+				dbuf->row = y >> 1;
 				dbuf->frame = Frame;
 				VgaRenderLine(dbuf);
-//			}
+			}
+			else {
+			  dbuf = VgaLineBufs[LineInx];
+      }
 		}
 		else {
+			LineInx ^= 1;
+			dbuf = VgaLineBufs[LineInx];
 			dbuf->row = y;
 	    dbuf->frame = Frame;
 			VgaRenderLine(dbuf);

@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-add_definitions(-DPCS_COLS=80 -DPCS_ROWS=60)
+add_definitions(-DPCS_COLS=80 -DPCS_ROWS=30)
 
 add_subdirectory(/home/pi/pico/PicoDVI/software/apps/pico-dvi-menu/ "${CMAKE_CURRENT_BINARY_DIR}/pico-dvi-menu")
 
