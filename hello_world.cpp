@@ -57,7 +57,7 @@ void init_zx_renderer() {
   }
 }
 
-static uint8_t screen[256*192];
+static uint8_t screen[6144];
 static uint8_t attr[768];
 
 static uint8_t *screenPtr = screen;
