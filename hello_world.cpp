@@ -3,17 +3,21 @@
 #include "pico/multicore.h"
 #include "hardware/vreg.h"
 #include "vga.h"
-#include "VGA_font8x8.h"
 
 #define VREG_VSEL VREG_VOLTAGE_1_20
 #include "PicoCharRendererVga.h"
-
-// __attribute__((aligned(4))) uint16_t charbuffer[PCS_COLS * PCS_ROWS];
+#include "PicoWinHidKeyboard.h"
+#include "PicoDisplay.h"
+#include "PicoPen.h"
 
 struct semaphore dvi_start_sem;
 static const sVmode* vmode = NULL;
 
 /*
+// __attribute__((aligned(4))) uint16_t charbuffer[PCS_COLS * PCS_ROWS];
+
+#include "VGA_font8x8.h"
+
 static u32 nibblebits[16];
 
 
@@ -40,13 +44,35 @@ void __not_in_flash_func(VgaRenderLine6)(uint32_t* buf, int y, uint32_t frames) 
     buf[np++] = nibblebits[b >> 4];
   }
 }
+
+void init() {
+  for(int i = 0; i < 16; ++i) {
+    u32 a = 0;
+    for(int j = 0; j < 4; ++j) {
+      if (i & (1 << j)) a |= (0xff << (j << 3));
+    }
+    nibblebits[i] = a;
+  }
+
+
+  for (int x = 0; x < PCS_COLS; ++x) {
+    for (int y = 0; y < 60; ++y) {
+      int i = x + (y * PCS_COLS);
+      int j = (x & 3) << 8;
+      charbuffer[i] = (i & 0x7f) | j;
+    }
+  } 
+}
+
+
+
 */
 
 void __not_in_flash_func(core1_main)() {
   sem_acquire_blocking(&dvi_start_sem);
   printf("Core 1 running...\n");
 
-
+  // TODO fetch the resolution from the mode ?
   VgaInit(vmode,640,480);
 
   while (1) {
@@ -63,24 +89,7 @@ void __not_in_flash_func(core1_main)() {
 int main(){
   vreg_set_voltage(VREG_VSEL);
   sleep_ms(10);
-/*
-  for(int i = 0; i < 16; ++i) {
-    u32 a = 0;
-    for(int j = 0; j < 4; ++j) {
-      if (i & (1 << j)) a |= (0xff << (j << 3));
-    }
-    nibblebits[i] = a;
-  }
 
-
-  for (int x = 0; x < PCS_COLS; ++x) {
-    for (int y = 0; y < 60; ++y) {
-      int i = x + (y * PCS_COLS);
-      int j = (x & 3) << 8;
-      charbuffer[i] = (i & 0x7f) | j;
-    }
-  }
-*/
   //Initialise I/O
   stdio_init_all(); 
   pcw_init_renderer();
@@ -93,16 +102,23 @@ int main(){
   sem_init(&dvi_start_sem, 0, 1);
   multicore_launch_core1(core1_main);
     
-      sleep_ms(1000);
+  PicoWin picoRootWin(10, 10, 60, 10);
+  PicoDisplay picoDisplay(pcw_screen(), &picoRootWin);
+  picoRootWin.onPaint([=](PicoPen *pen){
+    pen->printAtF(24, 4, false,"Hello World!");
+  });
+  
+  printf("Core 0 VCO %d\n", Vmode.vco);
 
   sem_release(&dvi_start_sem);
 
     //Main Loop 
     while(1){
-        printf("Core 0 VCO %d\n", Vmode.vco);
 
         printf("Hello ");
         sleep_ms(1000); // 0.5s delay
+
+        picoDisplay.refresh();
 
         printf("world!\n");
         sleep_ms(1000); // 0.5s delay
