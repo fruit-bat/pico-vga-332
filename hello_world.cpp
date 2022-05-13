@@ -66,16 +66,16 @@ static uint8_t *attrPtr = attr;
 
 
 void __not_in_flash_func(zx_render_line)(uint32_t* buf, uint32_t y, uint32_t frame) {
-	const uint8_t borderColor = 1; // TODO fetch from emulator
+  const uint8_t borderColor = 1; // TODO fetch from emulator
 
   const uint32_t bw = zx_colour_words[borderColor];
-	
-	if (y < 24 || y >= (24+192)) {
+  
+  if (y < 24 || y >= (24+192)) {
     // Screen is 640 bytes
     // Each color word is 4 bytes (and represents 2 pixels
     for (int i = 0; i < 160; ++i) buf[i] = bw;
-	}
-	else {
+  }
+  else {
     // 640 - (256 * 2) = 128
     // Border edge is 64 bytes wide
     for (int i = 0; i < 16; ++i) *buf++ = bw;
@@ -194,8 +194,8 @@ int main(){
   //Initialise I/O
   stdio_init_all(); 
 
-  for(unsigned int i = 0; i < sizeof(screen); ++i) {
-    screen[i] = (0xff & i);
+  for(unsigned int i = 0; i < sizeof(screen) ; ++i) {
+    screen[i] = (0xff & time_us_32());
   }
   for(unsigned int i = 0; i < sizeof(attr); ++i) {
     attr[i] = (0xff & i);
@@ -223,15 +223,19 @@ int main(){
 
   sem_release(&dvi_start_sem);
 
-    //Main Loop 
-    while(1){
 
-        printf("Hello ");
-        sleep_ms(1000); // 0.5s delay
+  //Main Loop 
+  while(1){
 
-        picoDisplay.refresh();
+    printf("Hello ");
+    sleep_ms(1000); // 0.5s delay
 
-        printf("world!\n");
-        sleep_ms(1000); // 0.5s delay
-    }
+    picoDisplay.refresh();
+    
+  for(unsigned int i = 0; i < sizeof(screen); ++i) {
+    screen[i] = (0xff & time_us_32());
+  }
+    printf("world!\n");
+    sleep_ms(1000); // 0.5s delay
+  }
 }
