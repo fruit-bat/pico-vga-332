@@ -9,6 +9,7 @@
 // ****************************************************************************
 
 #include "include.h"
+#include "util_queue_u32_inline.h"
 
 // base layer commands
 #define VGADARK(num,col) (((u32)(vga_offset_dark+BASE_OFFSET)<<27) | ((u32)(num)<<8) | (u32)(col)) // assemble control word of "dark" command
@@ -50,104 +51,11 @@ u32*	CtrlBufNext;
 // saved integer divider state
 hw_divider_state_t DividerState;
 
-
-
-
-
-
-
-
-
-
-
-
-static inline uint16_t _queue_inc_index_u32(queue_t *q, uint16_t index) {
-    if (++index > q->element_count) { // > because we have element_count + 1 elements
-        index = 0;
-    }
-    return index;
-}
-
-static inline bool queue_try_add_u32(queue_t *q, void *data) {
-    bool success = false;
-    uint32_t flags = spin_lock_blocking(q->core.spin_lock);
-    if (queue_get_level_unsafe(q) != q->element_count) {
-        ((uint32_t*)q->data)[q->wptr] = *(uint32_t*)data;
-        q->wptr = _queue_inc_index_u32(q, q->wptr);
-        success = true;
-    }
-    spin_unlock(q->core.spin_lock, flags);
-    if (success) __sev();
-    return success;
-}
-
-static inline bool queue_try_remove_u32(queue_t *q, void *data) {
-    bool success = false;
-    uint32_t flags = spin_lock_blocking(q->core.spin_lock);
-    if (queue_get_level_unsafe(q) != 0) {
-        *(uint32_t*)data = ((uint32_t*)q->data)[q->rptr];
-        q->rptr = _queue_inc_index_u32(q, q->rptr);
-        success = true;
-    }
-    spin_unlock(q->core.spin_lock, flags);
-    if (success) __sev();
-    return success;
-}
-
-static inline bool queue_try_peek_u32(queue_t *q, void *data) {
-    bool success = false;
-    uint32_t flags = spin_lock_blocking(q->core.spin_lock);
-    if (queue_get_level_unsafe(q) != 0) {
-        *(uint32_t*)data = ((uint32_t*)q->data)[q->rptr];
-        success = true;
-    }
-    spin_unlock(q->core.spin_lock, flags);
-    return success;
-}
-
-static inline void queue_add_blocking_u32(queue_t *q, void *data) {
-    bool done;
-    do {
-        done = queue_try_add_u32(q, data);
-        if (done) break;
-        __wfe();
-    } while (true);
-}
-
-static inline void queue_remove_blocking_u32(queue_t *q, void *data) {
-    bool done;
-    do {
-        done = queue_try_remove_u32(q, data);
-        if (done) break;
-        __wfe();
-    } while (true);
-}
-
-static inline void queue_peek_blocking_u32(queue_t *q, void *data) {
-    bool done;
-    do {
-        done = queue_try_peek_u32(q, data);
-        if (done) break;
-        __wfe();
-    } while (true);
-}
-
-
-
-
-
-
 VgaLineBuf* __not_in_flash_func(get_vga_line)() {
 	VgaLineBuf* linebuf;
 	queue_remove_blocking_u32(&q_vga_valid, &linebuf);
 	return linebuf;
 }
-
-
-
-
-
-
 
 // process scanline buffers (will save integer divider state into DividerState)
 int __not_in_flash_func(VgaBufProcess)()
@@ -189,18 +97,6 @@ int __not_in_flash_func(VgaBufProcess)()
 	}
 
 	return bufinx;
-}
-
-extern "C" void __not_in_flash_func(VgaRenderLine6)(u32* buf, int y, int bz);
-
-
-void __not_in_flash_func(VgaRenderLine)(VgaLineBuf* linebuf) {
-//	printf("Adding %d to queue\n", linebuf);
-  queue_add_blocking_u32(&q_vga_valid, &linebuf);
-//  u32* buf = (u32*)linebuf->line;
-//  u32 y = linebuf->row;
-//  int bz = 0x00;
-//  VgaRenderLine6(buf, y, bz);  
 }
 
 // VGA DMA handler - called on end of every scanline
@@ -251,7 +147,7 @@ extern "C" void __not_in_flash_func(VgaLine)()
 			  dbuf = VgaLineBufs[LineInx];
 				dbuf->row = y >> 1;
 				dbuf->frame = Frame;
-				VgaRenderLine(dbuf);
+				queue_add_blocking_u32(&q_vga_valid, &dbuf);
 			}
 			else {
 			  dbuf = VgaLineBufs[LineInx];
@@ -262,7 +158,7 @@ extern "C" void __not_in_flash_func(VgaLine)()
 			dbuf = VgaLineBufs[LineInx];
 			dbuf->row = y;
 	    dbuf->frame = Frame;
-			VgaRenderLine(dbuf);
+		  queue_add_blocking_u32(&q_vga_valid, &dbuf);
 		}
 
 		// HSYNC + back porch
