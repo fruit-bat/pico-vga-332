@@ -22,6 +22,7 @@ add_executable(hello_world
     hello_world.cpp
     vga_vmode.cpp
     vga.cpp
+    pzx_prepare_vga332_scanline.cpp
 )
 
 pico_generate_pio_header(hello_world 
