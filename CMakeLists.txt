@@ -23,10 +23,15 @@ add_executable(hello_world
     vga_vmode.cpp
     vga.cpp
     pzx_prepare_vga332_scanline.cpp
+    pzx_keyscan.cpp
 )
 
 pico_generate_pio_header(hello_world 
   ${CMAKE_CURRENT_LIST_DIR}/picovga.pio
+)
+
+pico_generate_pio_header(hello_world 
+  ${CMAKE_CURRENT_LIST_DIR}/pzx_keyscan.pio
 )
 
 target_link_libraries(hello_world
@@ -35,7 +40,7 @@ target_link_libraries(hello_world
   hardware_dma
   hardware_irq
   hardware_pio
-   pico_vga_menu
+  pico_vga_menu
 )
 
 pico_enable_stdio_usb(hello_world 1)
