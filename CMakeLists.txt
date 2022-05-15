@@ -30,10 +30,6 @@ pico_generate_pio_header(hello_world
   ${CMAKE_CURRENT_LIST_DIR}/picovga.pio
 )
 
-pico_generate_pio_header(hello_world 
-  ${CMAKE_CURRENT_LIST_DIR}/pzx_keyscan.pio
-)
-
 target_link_libraries(hello_world
   pico_stdlib 
   pico_multicore

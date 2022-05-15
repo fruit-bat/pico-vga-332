@@ -4,6 +4,7 @@
 #include "hardware/vreg.h"
 #include "vga.h"
 #include "pzx_prepare_vga332_scanline.h"
+#include "pzx_keyscan.h"
 
 #define VREG_VSEL VREG_VOLTAGE_1_20
 #include "PicoCharRendererVga.h"
@@ -39,6 +40,8 @@ void __not_in_flash_func(core1_main)() {
       screen,
       attr,
       1);
+      
+    pzx_keyscan_col();
   }
   __builtin_unreachable();
 }
@@ -61,7 +64,8 @@ int main(){
   
   pcw_init_renderer();
   
-
+  pzx_keyscan_init();
+  
   sleep_ms(10);
   
   printf("Core 0 VCO %d\n", Vmode.vco);
@@ -86,6 +90,7 @@ int main(){
 
     printf("Hello ");
     sleep_ms(1000); // 0.5s delay
+    pzx_keyscan_col();
 
     picoDisplay.refresh();
     
@@ -93,6 +98,6 @@ int main(){
     screen[i] = (0xff & time_us_32());
   }
     printf("world!\n");
-    sleep_ms(1000); // 0.5s delay
+    sleep_ms(100); // 0.5s delay
   }
 }

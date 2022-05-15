@@ -1,7 +1,3 @@
 #pragma once
-
-#define KB_ROW0 GPIO14
-#define KB_ROWS 6
-
-#define KB_COL0 GPIO20
-#define KB_COLS 6
+void pzx_keyscan_init();
+void __not_in_flash_func(pzx_keyscan_col)();
