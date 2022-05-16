@@ -38,7 +38,6 @@ void __not_in_flash_func(pzx_keyscan_row)() {
   uint32_t a = gpio_get_all() >> 20;
   uint32_t r = (a & 7) | ((a >> 3) & (7 << 3));
   rs[ri][si] = (uint8_t)r;
-  printf("keyrow %d %8.8x %2.2x\n", ri, a, r);
   uint32_t row;
   row = rp[ri];
   gpio_set_dir(row, GPIO_IN);
@@ -50,4 +49,12 @@ void __not_in_flash_func(pzx_keyscan_row)() {
   row = rp[ri];
   gpio_set_dir(row, GPIO_OUT);
   gpio_put(row, 0);
+}
+
+uint32_t __not_in_flash_func(pzx_keyscan_get_row)(uint32_t ri) {
+  uint32_t a = 0;
+  for(int si = 0; si < SAMPLES; ++si) {
+    a |= rs[ri][si];
+  }
+  return a;
 }

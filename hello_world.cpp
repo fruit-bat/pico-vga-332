@@ -41,7 +41,7 @@ void __not_in_flash_func(core1_main)() {
       attr,
       1);
       
-    // pzx_keyscan_row();
+    pzx_keyscan_row();
   }
   __builtin_unreachable();
 }
@@ -90,12 +90,11 @@ int main(){
 
    // printf("Hello ");
     sleep_ms(1000); 
-    pzx_keyscan_row();sleep_ms(1); 
-    pzx_keyscan_row();sleep_ms(1); 
-    pzx_keyscan_row();sleep_ms(1); 
-    pzx_keyscan_row();sleep_ms(1); 
-    pzx_keyscan_row();sleep_ms(1); 
-    pzx_keyscan_row();sleep_ms(1); 
+  
+    for(int ri = 0; ri < 6; ++ri) {
+      uint32_t r = pzx_keyscan_get_row(ri);
+      printf("keyrow %d %2.2x\n", ri, r);
+    }
     printf("\n");
 
     picoDisplay.refresh();
