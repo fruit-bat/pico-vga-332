@@ -16,37 +16,38 @@ static uint8_t rs[6][SAMPLES];
 void pzx_keyscan_init() {
   
     for(int i = 0; i < 6; ++i) {
-      gpio_init(cp[i]);
-      gpio_set_dir(cp[i], GPIO_IN);    
+      gpio_init(rp[i]);
+      gpio_set_dir(rp[i], GPIO_IN);    
       gpio_disable_pulls(rp[i]);
    }  
     
    for(int i = 0; i < 6; ++i) {
-      gpio_init(rp[i]);
-      gpio_set_dir(rp[i], GPIO_IN);    
-      gpio_pull_up(rp[i]);
+      gpio_init(cp[i]);
+      gpio_set_dir(cp[i], GPIO_IN);    
+      gpio_pull_up(cp[i]);
    }
    
-   uint32_t col = cp[0];
-   gpio_set_dir(col, GPIO_OUT);
-   gpio_put(col, 0);    
-  
+   uint32_t row = rp[0];
+   gpio_set_dir(row, GPIO_OUT);
+   gpio_put(row, 0);
 }
 
-void __not_in_flash_func(pzx_keyscan_col)() {
-  static uint32_t ci = 0;
+void __not_in_flash_func(pzx_keyscan_row)() {
+  static uint32_t ri = 0;
   static uint32_t si = 0;
-  uint32_t r = (gpio_get_all() >> 14) & 63;
-  rs[ci][si] = (uint8_t)r;
-  uint32_t col;
-  col = cp[ci];
-  gpio_set_dir(col, GPIO_IN);
-  gpio_disable_pulls(col);
-  if (ci++ >= 6) {
-    ci = 0;
-    if (si++ >= SAMPLES) si = 0; // TODO mask>
+  uint32_t a = gpio_get_all() >> 20;
+  uint32_t r = (a & 7) | ((a >> 3) & (7 << 3));
+  rs[ri][si] = (uint8_t)r;
+  printf("keyrow %d %8.8x %2.2x\n", ri, a, r);
+  uint32_t row;
+  row = rp[ri];
+  gpio_set_dir(row, GPIO_IN);
+  gpio_disable_pulls(row);
+  if (++ri >= 6) {
+    ri = 0;
+    if (++si >= SAMPLES) si = 0;
   }
-  col = cp[ci];
-  gpio_set_dir(col, GPIO_OUT);
-  gpio_put(col, 0);
+  row = rp[ri];
+  gpio_set_dir(row, GPIO_OUT);
+  gpio_put(row, 0);
 }

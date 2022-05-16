@@ -6,7 +6,7 @@
 #include "pzx_prepare_vga332_scanline.h"
 #include "pzx_keyscan.h"
 
-#define VREG_VSEL VREG_VOLTAGE_1_20
+#define VREG_VSEL VREG_VOLTAGE_1_10
 #include "PicoCharRendererVga.h"
 #include "PicoWinHidKeyboard.h"
 #include "PicoDisplay.h"
@@ -41,7 +41,7 @@ void __not_in_flash_func(core1_main)() {
       attr,
       1);
       
-    pzx_keyscan_col();
+    // pzx_keyscan_row();
   }
   __builtin_unreachable();
 }
@@ -88,16 +88,22 @@ int main(){
   //Main Loop 
   while(1){
 
-    printf("Hello ");
-    sleep_ms(1000); // 0.5s delay
-    pzx_keyscan_col();
+   // printf("Hello ");
+    sleep_ms(1000); 
+    pzx_keyscan_row();sleep_ms(1); 
+    pzx_keyscan_row();sleep_ms(1); 
+    pzx_keyscan_row();sleep_ms(1); 
+    pzx_keyscan_row();sleep_ms(1); 
+    pzx_keyscan_row();sleep_ms(1); 
+    pzx_keyscan_row();sleep_ms(1); 
+    printf("\n");
 
     picoDisplay.refresh();
     
   for(unsigned int i = 0; i < sizeof(screen); ++i) {
     screen[i] = (0xff & time_us_32());
   }
-    printf("world!\n");
-    sleep_ms(100); // 0.5s delay
+   // printf("world!\n");
+    sleep_ms(100); 
   }
 }
