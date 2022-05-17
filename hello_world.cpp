@@ -94,6 +94,7 @@ int main(){
     for(int ri = 0; ri < 6; ++ri) {
       uint32_t r = pzx_keyscan_get_row(ri);
       printf("keyrow %d %2.2x\n", ri, r);
+      pzx_print_keys(ri);
     }
     printf("\n");
 
