@@ -33,6 +33,7 @@ pico_generate_pio_header(hello_world
 target_link_libraries(hello_world
   pico_stdlib 
   pico_multicore
+	pico_util  
   hardware_dma
   hardware_irq
   hardware_pio

@@ -11,6 +11,8 @@
 #include "PicoWinHidKeyboard.h"
 #include "PicoDisplay.h"
 #include "PicoPen.h"
+#include "PicoTextField.h"
+#include "PicoWinHidKeyboard.h"
 
 struct semaphore dvi_start_sem;
 static const sVmode* vmode = NULL;
@@ -32,14 +34,21 @@ void __not_in_flash_func(core1_main)() {
     VgaLineBuf *linebuf = get_vga_line();
     uint32_t* buf = (uint32_t*)&(linebuf->line);
     uint32_t y = linebuf->row;
-    //pcw_prepare_vga332_scanline_80(buf, y, linebuf->frame);
-    pzx_prepare_vga332_scanline(
-      buf, 
-      y, 
-      linebuf->frame,
-      screen,
-      attr,
-      1);
+    if (true) {
+      pcw_prepare_vga332_scanline_80(
+        buf,
+        y,
+        linebuf->frame);
+    }
+    else {
+      pzx_prepare_vga332_scanline(
+        buf, 
+        y, 
+        linebuf->frame,
+        screen,
+        attr,
+        1);
+    }
       
     pzx_keyscan_row();
   }
@@ -76,6 +85,10 @@ int main(){
     
   PicoWin picoRootWin(10, 10, 60, 10);
   PicoDisplay picoDisplay(pcw_screen(), &picoRootWin);
+  PicoWinHidKeyboard picoWinHidKeyboard(&picoDisplay);  
+  
+  PicoTextField textField(24, 5, 16, 50);
+  picoRootWin.addChild(&textField, true);
   picoRootWin.onPaint([=](PicoPen *pen){
     pen->printAtF(24, 4, false,"Hello World!");
   });
@@ -89,20 +102,29 @@ int main(){
   while(1){
 
    // printf("Hello ");
-    sleep_ms(1000); 
+    sleep_ms(1); 
   
+    hid_keyboard_report_t const *curr;
+    hid_keyboard_report_t const *prev;
+    pzx_keyscan_get_hid_reports(&curr, &prev);
+    
     for(int ri = 0; ri < 6; ++ri) {
       uint32_t r = pzx_keyscan_get_row(ri);
       printf("keyrow %d %2.2x\n", ri, r);
-      pzx_print_keys(ri);
     }
-    printf("\n");
-
-    picoDisplay.refresh();
+    for(int ri = 0; ri < 6; ++ri) {
+      uint32_t cc = curr->keycode[ri];
+      uint32_t cp = prev->keycode[ri];
+      printf("hid key %d %2.2x %2.2x\n", ri, cc, cp);
+    }
+    printf("\n");       
     
-  for(unsigned int i = 0; i < sizeof(screen); ++i) {
-    screen[i] = (0xff & time_us_32());
-  }
+    picoWinHidKeyboard.processHidReport(curr, prev);
+    picoDisplay.refresh();
+      
+   // for(unsigned int i = 0; i < sizeof(screen); ++i) {
+   //   screen[i] = (0xff & time_us_32());
+   // }
    // printf("world!\n");
     sleep_ms(100); 
   }

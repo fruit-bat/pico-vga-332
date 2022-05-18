@@ -3,67 +3,31 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "hardware/structs/clocks.h"
-
+#include "class/hid/hid.h"
 #include "pzx_keyscan.h"
-// #include "pzx_keyscan.pio.h"
 
 #define SAMPLES 4 
 
 static uint8_t cp[] = {20, 21, 22, 26, 27, 28};  // Column pins
 static uint8_t rp[] = {14, 15, 16, 17, 18, 19};  // Row pins
 static uint8_t rs[6][SAMPLES];                   // Oversampled pins
-static uint8_t rbd[6];                           // Debounced pins
+static uint8_t rdb[6];                           // Debounced pins
+static hid_keyboard_report_t hr[2];              // Current and previous hid report
+static uint8_t hri = 0;                          // Currenct hid report index
 
-#define KEY_Q         0x14
-#define KEY_W         0x1a
-#define KEY_E         0x08
-#define KEY_R         0x15
-#define KEY_T         0x17
-#define KEY_ALT       0xe2
-#define KEY_Y         0x1c
-#define KEY_U         0x18
-#define KEY_I         0x0c
-#define KEY_O         0x12
-#define KEY_P         0x13
-#define KEY_UP        0x52
-#define KEY_DOWN      0x51
-#define KEY_ESC       0x29
-#define KEY_A         0x04
-#define KEY_S         0x16
-#define KEY_D         0x07
-#define KEY_F         0x08
-#define KEY_G         0x0a
-#define KEY_LEFT      0x50
-#define KEY_RIGHT     0x4f
-#define KEY_H         0x0b
-#define KEY_J         0x0d
-#define KEY_K         0x0e
-#define KEY_L         0x0f
-#define KEY_ENTER     0x28
-#define KEY_BACKSPACE 0x2a
-#define KEY_Z         0x1d
-#define KEY_X         0x1b
-#define KEY_C         0x06
-#define KEY_V         0x19
-#define KEY_SPACE     0x2c
-#define KEY_COMMA     0x36
-#define KEY_M         0x10
-#define KEY_N         0x11
-#define KEY_B         0x05
-
-static pzx_keyscan_keyinfo kbits[6][6] = {
+static uint8_t kbits[6][6] = {
   // Row 0
-  { {KEY_SPACE, ' ', ' '}, {KEY_COMMA, ',', '<'}, {KEY_M, 'm', 'M'}, {KEY_N, 'n', 'N'}, {KEY_B, 'b', 'B'}, {KEY_DOWN, ' ', ' '} },
+  { HID_KEY_SPACE, HID_KEY_COMMA, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
   // Row 1
-  { {KEY_ENTER, '\n', '\n'}, {KEY_L, 'l', 'L'}, {KEY_K, 'k', 'K'}, {KEY_J, 'j', 'J'}, {KEY_H, 'h', 'H'}, {KEY_LEFT, ' ', ' '} },
+  { HID_KEY_ENTER, HID_KEY_L, HID_KEY_K, HID_KEY_J, HID_KEY_H, HID_KEY_ARROW_LEFT },
   // Row 2
-  { {KEY_P, 'p', 'P'}, {KEY_O, 'o', 'O'}, {KEY_I, 'i', 'I'}, {KEY_U, 'u', 'U'}, {KEY_Y, 'y', 'Y'}, {KEY_UP, ' ', ' '} },
+  { HID_KEY_P, HID_KEY_O, HID_KEY_I, HID_KEY_U, HID_KEY_Y, HID_KEY_ARROW_UP },
   // Row 3
-  { {KEY_BACKSPACE, ' ', ' '}, {KEY_Z, 'z', 'Z'}, {KEY_X, 'x', 'X'}, {KEY_C, 'c', 'C'}, {KEY_V, 'v', 'V'}, {KEY_RIGHT, ' ', ' '} },
+  { HID_KEY_BACKSPACE, HID_KEY_Z, HID_KEY_X, HID_KEY_C, HID_KEY_V, HID_KEY_ARROW_RIGHT },
   // Row 4
-  { {KEY_A, 'a', 'A'}, {KEY_S, 's', 'S'}, {KEY_D, 'd', 'D'}, {KEY_F, 'f', 'F'}, {KEY_G, 'g', 'G'}, {KEY_ESC, ' ', ' '} },
+  { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_ESCAPE },
   // Row 5
-  { {KEY_Q, 'q', 'Q'}, {KEY_W, 'w', 'W'}, {KEY_E, 'e', 'E'}, {KEY_R, 'r', 'R'}, {KEY_T, 't', 'T'}, {KEY_ALT, ' ', ' '} }
+  { HID_KEY_Q, HID_KEY_W, HID_KEY_E, HID_KEY_R, HID_KEY_T, HID_KEY_ALT_LEFT }
 };
 
 void pzx_keyscan_init() {
@@ -111,22 +75,41 @@ void __not_in_flash_func(pzx_keyscan_row)() {
     am &= s; // bits 1 if all samples have the button pressed
   }
   // only change key state if all samples on or off
-  rbd[ri] = (am | rbd[ri]) & om; 
+  rdb[ri] = (am | rdb[ri]) & om; 
 }
 
 uint32_t __not_in_flash_func(pzx_keyscan_get_row)(uint32_t ri) {
-  return rbd[ri] ;
+  return rdb[ri] ;
 }
 
-void pzx_print_keys(uint32_t ri) {
-  uint8_t r = rbd[ri];
-  uint32_t i = 0;
-  while(r) {
-    if (r & 1) {
-      pzx_keyscan_keyinfo* ki = &(kbits[ri][i]);
-      printf("hid keycode %2.2x, ascii %2.2x, '%c'\n", ki->keycode, ki->normal, ki->normal);
+void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t const **curr, hid_keyboard_report_t const **prev) {
+  // TODO Handle modifiers first 
+  
+  // Build the current hid report
+  uint32_t ki = 0;
+  hid_keyboard_report_t *chr = &hr[hri & 1];
+  for(int ri = 0; ri < 6; ++ri) {
+    uint8_t r = rdb[ri];
+    uint32_t ci = 0;
+    while(r) {
+      if (r & 1) {
+        if (ki > sizeof(chr->keycode)) {
+          // overflow
+          ki = 0;
+          while(ki < sizeof(chr->keycode)) chr->keycode[ki++] = 1;
+          break;  
+        }
+        uint8_t kc = kbits[ri][ci];
+        chr->keycode[ki++] = kc;
+      
+      }
+      ++ci;
+      r >>= 1;
     }
-    ++i;
-    r >>= 1;
   }
+  while(ki < sizeof(chr->keycode)) chr->keycode[ki++] = 0;
+  *curr = chr;
+  hri++;
+  *prev = &hr[hri & 1];
 }
+
