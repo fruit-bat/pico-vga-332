@@ -93,7 +93,7 @@ void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t cons
     uint32_t ci = 0;
     while(r) {
       if (r & 1) {
-        if (ki > sizeof(chr->keycode)) {
+        if (ki >= sizeof(chr->keycode)) {
           // overflow
           ki = 0;
           while(ki < sizeof(chr->keycode)) chr->keycode[ki++] = 1;
@@ -101,7 +101,6 @@ void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t cons
         }
         uint8_t kc = kbits[ri][ci];
         chr->keycode[ki++] = kc;
-      
       }
       ++ci;
       r >>= 1;
