@@ -17,7 +17,8 @@ add_compile_options(-Wall
         -Wno-unused-function # we have some for the docs that aren't called
         -Wno-maybe-uninitialized
         )
-        
+
+
 add_executable(hello_world
     hello_world.cpp
     vga_vmode.cpp
@@ -25,6 +26,8 @@ add_executable(hello_world
     pzx_prepare_vga332_scanline.cpp
     pzx_keyscan.cpp
 )
+
+target_compile_definitions(hello_world PRIVATE PICO_MALLOC_PANIC=1)
 
 pico_generate_pio_header(hello_world 
   ${CMAKE_CURRENT_LIST_DIR}/picovga.pio
