@@ -118,23 +118,23 @@ void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t cons
     if (rdb[KEY_UP_ROW] & KEY_UP_BIT) {
       // Shift on
       modifier |= 2;
-      return;
     }
     else if (rdb[KEY_DOWN_ROW] & KEY_DOWN_BIT) {
       // Shift off
       modifier &= ~2;
-      return;
     }
     if (rdb[KEY_RIGHT_ROW] & KEY_RIGHT_BIT) {
       // Alt keyboard on
       kbi = 1;
-      return;
     }
     else if (rdb[KEY_LEFT_ROW] & KEY_LEFT_BIT) {
       // Alt keyboard off
       kbi = 0;
-      return;
     }
+    rdb[KEY_UP_ROW] &= ~KEY_UP_BIT;
+    rdb[KEY_DOWN_ROW] &= ~KEY_DOWN_BIT;
+    rdb[KEY_RIGHT_ROW] &= ~KEY_RIGHT_BIT;
+    rdb[KEY_LEFT_ROW] &= ~KEY_LEFT_BIT;
   }
   
   // Build the current hid report
