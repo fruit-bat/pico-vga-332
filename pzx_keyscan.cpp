@@ -14,36 +14,48 @@ static uint8_t rs[6][SAMPLES];                   // Oversampled pins
 static uint8_t rdb[6];                           // Debounced pins
 static hid_keyboard_report_t hr[2];              // Current and previous hid report
 static uint8_t hri = 0;                          // Currenct hid report index
-
-static uint8_t kbits[6][6] = {
-  // Row 0
-  { HID_KEY_SPACE, HID_KEY_COMMA, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
-  // Row 1
-  { HID_KEY_ENTER, HID_KEY_L, HID_KEY_K, HID_KEY_J, HID_KEY_H, HID_KEY_ARROW_LEFT },
-  // Row 2
-  { HID_KEY_P, HID_KEY_O, HID_KEY_I, HID_KEY_U, HID_KEY_Y, HID_KEY_ARROW_UP },
-  // Row 3
-  { HID_KEY_BACKSPACE, HID_KEY_Z, HID_KEY_X, HID_KEY_C, HID_KEY_V, HID_KEY_ARROW_RIGHT },
-  // Row 4
-  { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_ESCAPE },
-  // Row 5
-  { HID_KEY_Q, HID_KEY_W, HID_KEY_E, HID_KEY_R, HID_KEY_T, HID_KEY_ALT_LEFT }
+static uint8_t kbi = 0;
+static uint8_t kbits[2][6][6] = { 
+  {
+    // Row 0
+    { HID_KEY_SPACE, HID_KEY_COMMA, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
+    // Row 1
+    { HID_KEY_ENTER, HID_KEY_L, HID_KEY_K, HID_KEY_J, HID_KEY_H, HID_KEY_ARROW_LEFT },
+    // Row 2
+    { HID_KEY_P, HID_KEY_O, HID_KEY_I, HID_KEY_U, HID_KEY_Y, HID_KEY_ARROW_UP },
+    // Row 3
+    { HID_KEY_BACKSPACE, HID_KEY_Z, HID_KEY_X, HID_KEY_C, HID_KEY_V, HID_KEY_ARROW_RIGHT },
+    // Row 4
+    { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_ESCAPE },
+    // Row 5
+    { HID_KEY_Q, HID_KEY_W, HID_KEY_E, HID_KEY_R, HID_KEY_T, HID_KEY_ALT_LEFT }
+  },
+  {
+    // Row 0
+    { HID_KEY_SPACE, HID_KEY_SEMICOLON, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
+    // Row 1
+    { HID_KEY_ENTER, HID_KEY_MINUS, HID_KEY_K, HID_KEY_J, HID_KEY_H, HID_KEY_ARROW_LEFT },
+    // Row 2
+    { HID_KEY_0, HID_KEY_9, HID_KEY_8, HID_KEY_7, HID_KEY_6, HID_KEY_ARROW_UP },
+    // Row 3
+    { HID_KEY_EQUAL, HID_KEY_Z, HID_KEY_X, HID_KEY_C, HID_KEY_V, HID_KEY_ARROW_RIGHT },
+    // Row 4
+    { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_CAPS_LOCK },
+    // Row 5
+    { HID_KEY_1, HID_KEY_2, HID_KEY_3, HID_KEY_4, HID_KEY_5, HID_KEY_ALT_LEFT }
+  }
 };
 
-static uint8_t akbits[6][6] = {
-  // Row 0
-  { HID_KEY_SPACE, HID_KEY_COMMA, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
-  // Row 1
-  { HID_KEY_ENTER, HID_KEY_L, HID_KEY_K, HID_KEY_J, HID_KEY_H, HID_KEY_ARROW_LEFT },
-  // Row 2
-  { HID_KEY_0, HID_KEY_9, HID_KEY_8, HID_KEY_7, HID_KEY_6, HID_KEY_ARROW_UP },
-  // Row 3
-  { HID_KEY_EQUAL, HID_KEY_Z, HID_KEY_X, HID_KEY_C, HID_KEY_V, HID_KEY_ARROW_RIGHT },
-  // Row 4
-  { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_ESCAPE },
-  // Row 5
-  { HID_KEY_1, HID_KEY_2, HID_KEY_3, HID_KEY_4, HID_KEY_5, HID_KEY_ALT_LEFT }
-};
+#define KEY_ALT_ROW 5
+#define KEY_ALT_BIT 0x20
+#define KEY_UP_ROW 2
+#define KEY_UP_BIT 0x20
+#define KEY_DOWN_ROW 0
+#define KEY_DOWN_BIT 0x20
+#define KEY_LEFT_ROW 1
+#define KEY_LEFT_BIT 0x20
+#define KEY_RIGHT_ROW 3
+#define KEY_RIGHT_BIT 0x20
 
 
 void pzx_keyscan_init() {
@@ -99,11 +111,36 @@ uint32_t __not_in_flash_func(pzx_keyscan_get_row)(uint32_t ri) {
 }
 
 void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t const **curr, hid_keyboard_report_t const **prev) {
-  // TODO Handle modifiers first 
+
+  static uint8_t modifier = 0;
+  
+  if (rdb[KEY_ALT_ROW] & KEY_ALT_BIT) {
+    if (rdb[KEY_UP_ROW] & KEY_UP_BIT) {
+      // Shift on
+      modifier |= 2;
+      return;
+    }
+    else if (rdb[KEY_DOWN_ROW] & KEY_DOWN_BIT) {
+      // Shift off
+      modifier &= ~2;
+      return;
+    }
+    if (rdb[KEY_RIGHT_ROW] & KEY_RIGHT_BIT) {
+      // Alt keyboard on
+      kbi = 1;
+      return;
+    }
+    else if (rdb[KEY_LEFT_ROW] & KEY_LEFT_BIT) {
+      // Alt keyboard off
+      kbi = 0;
+      return;
+    }
+  }
   
   // Build the current hid report
   uint32_t ki = 0;
   hid_keyboard_report_t *chr = &hr[hri & 1];
+  chr->modifier = modifier;
   for(int ri = 0; ri < 6; ++ri) {
     uint8_t r = rdb[ri];
     uint32_t ci = 0;
@@ -115,7 +152,7 @@ void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t cons
           while(ki < sizeof(chr->keycode)) chr->keycode[ki++] = 1;
           break;  
         }
-        uint8_t kc = kbits[ri][ci];
+        uint8_t kc = kbits[kbi & 1][ri][ci];
         chr->keycode[ki++] = kc;
       }
       ++ci;

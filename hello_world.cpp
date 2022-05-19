@@ -87,7 +87,7 @@ int main(){
   PicoDisplay picoDisplay(pcw_screen(), &picoRootWin);
   PicoWinHidKeyboard picoWinHidKeyboard(&picoDisplay);  
   
-  PicoTextField textField(24, 5, 16, 50);
+  PicoTextField textField(24, 5, 16, 18);
   picoRootWin.addChild(&textField, true);
   picoRootWin.onPaint([=](PicoPen *pen){
     pen->printAtF(24, 4, false,"Hello World!");
@@ -120,6 +120,7 @@ int main(){
     printf("\n");       
     
     picoWinHidKeyboard.processHidReport(curr, prev);
+    
     picoDisplay.refresh();
       
    // for(unsigned int i = 0; i < sizeof(screen); ++i) {
