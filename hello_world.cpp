@@ -13,10 +13,12 @@
 #include "PicoPen.h"
 #include "PicoTextField.h"
 #include "PicoWinHidKeyboard.h"
+#include "SdCardFatFsSpi.h"
 
 struct semaphore dvi_start_sem;
 static const sVmode* vmode = NULL;
 
+static SdCardFatFsSpi sdCard0(0);
 
 
 static uint8_t screen[6144];
@@ -96,18 +98,21 @@ int main(){
   printf("Core 0 VCO %d\n", Vmode.vco);
 
   sem_release(&dvi_start_sem);
-
-
+set_spi_dma_irq_channel(true, true);
   //Main Loop 
   while(1){
 
    // printf("Hello ");
-    sleep_ms(1); 
+  sleep_ms(1000); printf("mounting... ");
+  sdCard0.mount();
+  sleep_ms(1000); printf("unmounting... ");
+  sdCard0.unmount();
   
+    
     hid_keyboard_report_t const *curr;
     hid_keyboard_report_t const *prev;
     pzx_keyscan_get_hid_reports(&curr, &prev);
-    
+    /*
     for(int ri = 0; ri < 6; ++ri) {
       uint32_t r = pzx_keyscan_get_row(ri);
       printf("keyrow %d %2.2x\n", ri, r);
@@ -118,7 +123,7 @@ int main(){
       printf("hid key %d %2.2x %2.2x\n", ri, cc, cp);
     }
     printf("\n");       
-    
+    */
     picoWinHidKeyboard.processHidReport(curr, prev);
     
     picoDisplay.refresh();

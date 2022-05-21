@@ -97,7 +97,7 @@ typedef unsigned char Bool;
 
 #define	BIGINT	0x40000000 // big int value
 
-#define _T(a) a
+// #define _T(a) a
 
 #define PI 3.14159265358979324
 #define PI2 (3.14159265358979324*2)
