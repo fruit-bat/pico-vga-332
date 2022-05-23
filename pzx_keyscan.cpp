@@ -15,7 +15,8 @@ static uint8_t rdb[6];                           // Debounced pins
 static hid_keyboard_report_t hr[2];              // Current and previous hid report
 static uint8_t hri = 0;                          // Currenct hid report index
 static uint8_t kbi = 0;
-static uint8_t kbits[2][6][6] = { 
+static uint8_t kbits[3][6][6] = { 
+  // Normal mappings
   {
     // Row 0
     { HID_KEY_SPACE, HID_KEY_COMMA, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
@@ -30,6 +31,7 @@ static uint8_t kbits[2][6][6] = {
     // Row 5
     { HID_KEY_Q, HID_KEY_W, HID_KEY_E, HID_KEY_R, HID_KEY_T, HID_KEY_ALT_LEFT }
   },
+  // Alt mappings
   {
     // Row 0
     { HID_KEY_SPACE, HID_KEY_SEMICOLON, HID_KEY_M, HID_KEY_N, HID_KEY_B, HID_KEY_ARROW_DOWN },
@@ -40,14 +42,31 @@ static uint8_t kbits[2][6][6] = {
     // Row 3
     { HID_KEY_EQUAL, HID_KEY_Z, HID_KEY_X, HID_KEY_C, HID_KEY_V, HID_KEY_ARROW_RIGHT },
     // Row 4
-    { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_CAPS_LOCK },
+    { HID_KEY_A, HID_KEY_S, HID_KEY_D, HID_KEY_F, HID_KEY_G, HID_KEY_ESCAPE },
     // Row 5
     { HID_KEY_1, HID_KEY_2, HID_KEY_3, HID_KEY_4, HID_KEY_5, HID_KEY_ALT_LEFT }
+  },
+  // Esc down mappings
+  {
+    // Row 0
+    { 0, 0, 0, 0, 0, 0 },
+    // Row 1
+    { HID_KEY_ESCAPE, 0, 0, 0, 0, 0 },
+    // Row 2
+    { HID_KEY_F10, HID_KEY_F9, HID_KEY_F8, HID_KEY_F7, HID_KEY_F6, 0 },
+    // Row 3
+    { 0, 0, 0, 0, 0, 0 },
+    // Row 4
+    { 0, 0, 0, 0, 0, 0 },
+    // Row 5
+    { HID_KEY_F1, HID_KEY_F2, HID_KEY_F3, HID_KEY_F4, HID_KEY_F5, 0 }
   }
 };
 
 #define KEY_ALT_ROW 5
 #define KEY_ALT_BIT 0x20
+#define KEY_ESC_ROW 4
+#define KEY_ESC_BIT 0x20
 #define KEY_UP_ROW 2
 #define KEY_UP_BIT 0x20
 #define KEY_DOWN_ROW 0
@@ -56,7 +75,8 @@ static uint8_t kbits[2][6][6] = {
 #define KEY_LEFT_BIT 0x20
 #define KEY_RIGHT_ROW 3
 #define KEY_RIGHT_BIT 0x20
-
+#define KEY_ENTER_ROW 1
+#define KEY_ENTER_BIT 0x01
 
 void pzx_keyscan_init() {
   
@@ -106,15 +126,25 @@ void __not_in_flash_func(pzx_keyscan_row)() {
   rdb[ri] = (am | rdb[ri]) & om; 
 }
 
-uint32_t __not_in_flash_func(pzx_keyscan_get_row)(uint32_t ri) {
-  return rdb[ri] ;
+uint8_t __not_in_flash_func(pzx_kempston)() {
+  return 
+    ((rdb[KEY_ALT_ROW] & KEY_ALT_BIT) >> 1)
+  | ((rdb[KEY_UP_ROW] & KEY_UP_BIT) >> 2)
+  | ((rdb[KEY_DOWN_ROW] & KEY_DOWN_BIT) >> 3)
+  | ((rdb[KEY_LEFT_ROW] & KEY_LEFT_BIT) >> 4)
+  | ((rdb[KEY_RIGHT_ROW] & KEY_RIGHT_BIT) >> 5);
 }
 
 void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t const **curr, hid_keyboard_report_t const **prev) {
 
   static uint8_t modifier = 0;
   
-  if (rdb[KEY_ALT_ROW] & KEY_ALT_BIT) {
+  // Using Alt will interfere with the joystick
+  // We could use Escape... but then we need an escape key Esc - Enter ?
+  // TODO Need a mapping for Caps Lock
+  bool esc_down = rdb[KEY_ESC_ROW] & KEY_ESC_BIT;
+  
+  if (esc_down) {
     if (rdb[KEY_UP_ROW] & KEY_UP_BIT) {
       // Shift on
       modifier |= 2;
@@ -152,7 +182,7 @@ void __not_in_flash_func(pzx_keyscan_get_hid_reports)(hid_keyboard_report_t cons
           while(ki < sizeof(chr->keycode)) chr->keycode[ki++] = 1;
           break;  
         }
-        uint8_t kc = kbits[kbi & 1][ri][ci];
+        uint8_t kc = kbits[esc_down ? 2 : kbi][ri][ci];
         chr->keycode[ki++] = kc;
       }
       ++ci;
