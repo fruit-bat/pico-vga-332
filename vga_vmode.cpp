@@ -116,8 +116,17 @@ const u16 VideoResReq[RES_MAX*2] =
 //  outpd1 ... output postdiv1 (1..7)
 //  outpd2 ... output postdiv2 (1..7)
 // Returns true if precise frequency has been found, or near frequency used otherwise.
-bool vcocalc(u32 reqkhz, u32 input, u32 vcomin, u32 vcomax, bool lowvco,
-		u32* outkhz, u32* outvco, u16* outfbdiv, u8* outpd1, u8* outpd2)
+bool vcocalc(
+  u32 reqkhz,
+  u32 input,
+  u32 vcomin,
+  u32 vcomax,
+  bool lowvco,
+	u32* outkhz,
+	u32* outvco,
+	u16* outfbdiv,
+	u8* outpd1,
+	u8* outpd2)
 {
 	u32 khz, vco, margin;
 	u16 fbdiv;
@@ -139,11 +148,11 @@ bool vcocalc(u32 reqkhz, u32 input, u32 vcomin, u32 vcomax, bool lowvco,
 			for (pd1 = 7; pd1 >= 1; pd1--)
 			{
 				// pd2 loop
-				for (pd2 = pd1; pd2 >= 1; pd2--)
+				for (pd2 = 7; pd2 >= 1; pd2--)
 				{
 					// current output frequency
 					khz = vco / (pd1 * pd2);
-
+								
 					// check best frequency
 					margin = abs((int)(khz - reqkhz));
 					if (margin < margin_best)
@@ -191,8 +200,7 @@ bool FindSysClock(u32 reqkhz, u32* outkhz, u32* outvco, u16* outfbdiv, u8* outpd
 	u32 input = clock_get_hz(clk_ref)/1000;
 
 	// find PLL setup
-//	return vcocalc(reqkhz, input, 400000, 1600000, false,  outkhz, outvco, outfbdiv, outpd1, outpd2);
-	return vcocalc(reqkhz, input, 1600000, 2500000, false,  outkhz, outvco, outfbdiv, outpd1, outpd2);
+	return vcocalc(reqkhz, input, 400000, 1600000, true,  outkhz, outvco, outfbdiv, outpd1, outpd2);
 }
 
 
@@ -203,9 +211,8 @@ void VgaCfgDef(sVgaCfg* cfg)
 	cfg->height = 480;		// height in lines
 	cfg->wfull = 0;			// width of full screen, corresponding to 'hfull' time (0=use 'width' parameter)
 	cfg->video = &VideoVGA;		// used video timings
-	uint freq = clock_get_hz(clk_sys)/1000;
-	cfg->freq = freq;       // required minimal system frequency in kHz (real frequency can be higher)
-	cfg->fmax = 270000;		// maximal system frequency in kHz (limit resolution if needed)
+	cfg->freq = 180000;       // required minimal system frequency in kHz (real frequency can be higher)
+	cfg->fmax = 240000;		// maximal system frequency in kHz (limit resolution if needed)
 	cfg->dbly = False;		// double in Y direction
 	cfg->lockfreq = False;		// lock required frequency, do not change it
 }
