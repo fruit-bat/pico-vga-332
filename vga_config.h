@@ -1,6 +1,3 @@
-// #include "platform_config.h"
-#include "iopins.h"
-
 // ****************************************************************************
 //                                 
 //                            VGA configuration
@@ -23,7 +20,7 @@
 #define	CBUF_MAX	8 //((MAXX+24)/4)	// max. size of control buffer of layer 0
 
 
-// === VGA port pins
+// === Default VGA port pins
 //	GP0 ... VGA B0 blue
 //	GP1 ... VGA B1
 //	GP2 ... VGA G0 green
@@ -33,11 +30,28 @@
 //	GP6 ... VGA R1
 //	GP7 ... VGA R2
 //	GP8 ... VGA SYNC synchronization (inverted: negative SYNC=LOW=0x80, BLACK=HIGH=0x00)
-#define VGA_GPIO_FIRST	VGA_COLORBASE	// first VGA GPIO
-#define VGA_GPIO_NUM	9	// number of VGA GPIOs, including HSYNC and VSYNC
-#define VGA_GPIO_OUTNUM	8	// number of VGA color GPIOs, without HSYNC and VSYNC
+
+#ifndef VGA_GPIO_FIRST
+  #define VGA_GPIO_FIRST	0	// first VGA GPIO
+#endif
+
+#ifndef VGA_GPIO_OUTNUM
+  #define VGA_GPIO_OUTNUM	8	// number of VGA color GPIOs, without HSYNC and VSYNC
+#endif
+
+#ifndef VGA_GPIO_NUM
+  #ifdef VGA_VSYNC
+    #define VGA_GPIO_NUM	(VGA_GPIO_OUTNUM+2)	// number of VGA GPIOs, including HSYNC and VSYNC
+  #else
+    #define VGA_GPIO_NUM	(VGA_GPIO_OUTNUM+1)	// number of VGA GPIOs, including HSYNC
+  #endif
+#endif
+
 #define VGA_GPIO_LAST	(VGA_GPIO_FIRST+VGA_GPIO_NUM-1)	// last VGA GPIO
-#define VGA_GPIO_SYNC	VGA_SYNCBASE	// VGA SYNC GPIO
+
+#ifndef VGA_GPIO_SYNC
+  #define VGA_GPIO_SYNC	8	// VGA SYNC GPIO
+#endif
 
 // === VGA PIO program
 #define BASE_OFFSET	17	// offset of base layer program
