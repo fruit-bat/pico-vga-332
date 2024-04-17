@@ -46,7 +46,8 @@ typedef struct {
 extern const sVideo VideoEGA;
 // VGA 4:3 640x480 (16:9 848x480), vert. 60 Hz, hor. 31.4685 kHz, pixel clock 25.175 MHz
 extern const sVideo VideoVGA;
-
+// 720x576x50Hz
+extern const sVideo VideoDVD;
 
 
 // required configuration to initialize VGA output
@@ -107,7 +108,7 @@ typedef struct {
 	bool	dbly;		// double scanlines
 	bool	psync;		// positive synchronization
 } sVmode;
-
+/*
 // output device
 enum {
 	DEV_VGA=0,	// VGA monitor
@@ -126,10 +127,10 @@ enum {
 
 	RES_MAX
 };
+*/
 
-
-extern sVmode Vmode;	// videomode setup
-extern sVgaCfg Cfg;	// required configuration
+//extern sVmode Vmode;	// videomode setup
+//extern sVgaCfg Cfg;	// required configuration
 
 // initialize default VGA configuration
 void VgaCfgDef(sVgaCfg* cfg);

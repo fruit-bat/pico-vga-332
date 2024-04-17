@@ -13,7 +13,7 @@
 
 #include "include.h"
 
-#define DBUF_MAX 640
+#define DBUF_MAX 720
 
 
 #ifdef __cplusplus
@@ -53,7 +53,7 @@ extern u32	CtrlBuf2[CBUF_MAX];	// control pairs: u32 count, read address (must b
 void ScanlineTypeInit(const sVmode* v);
 
 // initialize videomode (returns False on bad configuration)
-void VgaInit(const sVmode* vmode, int width, int height); 
+void VgaInit(const sVmode* vmode); 
 
 // wait for VSync scanline
 void WaitVSync();

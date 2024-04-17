@@ -10,8 +10,7 @@
 
 #include "include.h"
 
-sVmode Vmode;	// videomode setup
-sVgaCfg Cfg;	// required configuration
+
 
 /*
 http://martin.hinner.info/vga/pal.html
@@ -78,8 +77,34 @@ const sVideo VideoVGA = {
 	.psync=False,		// positive synchronization
 };
 
+// https://tomverbeure.github.io/video_timings_calculator
+// 720x576x50Hz CEA-861 27MHz Pixel clock
+const sVideo VideoDVD = {
+	// horizontal
+	.htot =  864.0f / 27.0f, // total scanline in [us] (864 pixels)
+	.hfront = 12.0f / 27.0f, // H front porch (after image, before HSYNC) in [us] (12 pixels)
+	.hsync =  64.0f / 27.0f, // H sync pulse in [us] (64 pixels)
+	.hback =  68.0f / 27.0f, // H back porch (after HSYNC, before image) in [us] (68 pixels)
+	.hfull = 720.0f / 27.0f, // H full visible in [us] (720 pixels)
+
+	// vertical
+	.vtot = 625, // total scanlines (both subframes)
+	.vmax = 576, // maximal height
+
+	// frame
+	.vsync = 5,	 // V sync (half-)pulses
+	.vpost = 0,	 // V sync post half-pulses
+	.vback = 39, // V back porch (after VSYNC, before image)
+	.vact = 576, // active visible scanlines
+	.vfront = 5, // V front porch (after image, before VSYNC)
+	.vpre = 0,	 // V sync pre half-pulses
+
+	// flags
+	.psync = False, // positive synchronization
+};
 
 // timings
+/*
 const sVideo* VideoResTab[DEV_MAX*RES_MAX] =
 {
 	// DEV_VGA
@@ -101,7 +126,7 @@ const u16 VideoResReq[RES_MAX*2] =
 	640, 480, 	// RES_VGA,	// 640x480
 	640, 240, 	// RES_HVGA,	// 640x240
 };
-
+*/
 
 // Search PLL setup
 //  reqkhz ... required output frequency in kHz
@@ -212,12 +237,10 @@ void VgaCfgDef(sVgaCfg* cfg)
 	cfg->wfull = 0;			// width of full screen, corresponding to 'hfull' time (0=use 'width' parameter)
 	cfg->video = &VideoVGA;		// used video timings
 	cfg->freq = 180000;       // required minimal system frequency in kHz (real frequency can be higher)
-	cfg->fmax = 240000;		// maximal system frequency in kHz (limit resolution if needed)
+	cfg->fmax = 280000;		// maximal system frequency in kHz (limit resolution if needed)
 	cfg->dbly = False;		// double in Y direction
 	cfg->lockfreq = False;		// lock required frequency, do not change it
 }
-
-
 
 // calculate videomode setup
 //   cfg ... required configuration
@@ -370,8 +393,12 @@ void VgaCfg(const sVgaCfg* cfg, sVmode* vmode)
 // initialize videomode
 //  dev ... device DEV_*
 //  res ... resolution RES_*
+/*
 const sVmode* Video(u8 dev, u8 res)
 {
+static	sVmode Vmode;	// videomode setup
+static sVgaCfg Cfg;	// required configuration
+
 	// prepare timings structure
 	if (dev >= DEV_MAX) dev = DEV_VGA;
 	if (res >= RES_MAX) res = RES_MAX-1;
@@ -396,3 +423,4 @@ const sVmode* Video(u8 dev, u8 res)
 	return &Vmode;
 }
 
+*/
