@@ -16,29 +16,31 @@ extern "C" {
 #endif
 
 // video timings
-typedef struct {
+typedef struct
+{
 	// horizontal
-	float	htot;		// total scanline in [us]
-	float	hfront;		// H front porch (after image, before HSYNC) in [us]
-	float	hsync;		// H sync pulse in [us]
-	float	hback;		// H back porch (after HSYNC, before image) in [us]
-	float	hfull;		// H full visible in [us] (corresponding to 'wfull' pixels)
+	float htot;	  // total scanline in [us]
+	float hfront; // H front porch (after image, before HSYNC) in [us]
+	float hsync;  // H sync pulse in [us]
+	float hback;  // H back porch (after HSYNC, before image) in [us]
+	float hfull;  // H full visible in [us] (corresponding to 'wfull' pixels)
 
 	// vertical
-	u16	vtot;		// total scanlines (both subframes)
-	u16	vmax;		// maximal height
+	u16 vtot; // total scanlines (both subframes)
+	u16 vmax; // maximal height
 
 	// frame
-	u16	vsync;		// V sync (half-)pulses
-	u16	vpost;		// V sync post half-pulses
-	u16	vback;		// V back porch (after VSYNC, before image)
-	u16	vact;		// active visible scanlines
-	u16	vfront;	// V front porch (after image, before VSYNC)
-	u16	vpre;		// V sync pre half-pulses
+	u16 vsync;	// V sync (half-)pulses
+	u16 vpost;	// V sync post half-pulses
+	u16 vback;	// V back porch (after VSYNC, before image)
+	u16 vact;	// active visible scanlines
+	u16 vfront; // V front porch (after image, before VSYNC)
+	u16 vpre;	// V sync pre half-pulses
 
-	bool	psync;		// positive synchronization
+	bool psync; // positive synchronization
+
+	u32 sys_clk_khz; // Recommended sysclk in
 } sVideo;
-
 
 // === Monitor videomodes
 
@@ -108,29 +110,6 @@ typedef struct {
 	bool	dbly;		// double scanlines
 	bool	psync;		// positive synchronization
 } sVmode;
-/*
-// output device
-enum {
-	DEV_VGA=0,	// VGA monitor
-
-	DEV_MAX
-};
-
-// preset videomode resolution
-enum {
-	RES_ZX = 0,	// 256x192
-	RES_CGA,	  // 320x200
-	RES_QVGA,	  // 320x240
-	RES_EGA,	  // 512x400
-	RES_VGA,	  // 640x480
-	RES_HVGA,   // 640x240
-
-	RES_MAX
-};
-*/
-
-//extern sVmode Vmode;	// videomode setup
-//extern sVgaCfg Cfg;	// required configuration
 
 // initialize default VGA configuration
 void VgaCfgDef(sVgaCfg* cfg);

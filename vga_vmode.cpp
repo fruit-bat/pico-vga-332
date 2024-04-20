@@ -50,6 +50,8 @@ const sVideo VideoEGA = {
 
 	// flags
 	.psync=False,		// positive synchronization
+
+	.sys_clk_khz = 252000
 };
 
 // VGA 4:3 640x480 (16:9 848x480), vert. 60 Hz, hor. 31.4685 kHz, pixel clock 25.175 MHz
@@ -75,6 +77,8 @@ const sVideo VideoVGA = {
 
 	// flags
 	.psync=False,		// positive synchronization
+
+	.sys_clk_khz = 252000
 };
 
 // https://tomverbeure.github.io/video_timings_calculator
@@ -101,32 +105,9 @@ const sVideo VideoDVD = {
 
 	// flags
 	.psync = False, // positive synchronization
-};
 
-// timings
-/*
-const sVideo* VideoResTab[DEV_MAX*RES_MAX] =
-{
-	// DEV_VGA
-	&VideoEGA,	// RES_ZX = 0,	// 256x192
-	&VideoVGA,	// RES_CGA,	// 320x200
-	&VideoVGA,	// RES_QVGA,	// 320x240
-	&VideoEGA,	// RES_EGA,	// 528x400
-	&VideoVGA,	// RES_VGA,	// 640x480
-	&VideoVGA,	// RES_VGA,	// 640x480
+	.sys_clk_khz = 270000
 };
-
-// required resolution width x height
-const u16 VideoResReq[RES_MAX*2] =
-{
-	256, 192,	// RES_ZX = 0,	// 256x192
-	320, 200,	// RES_CGA,	// 320x200
-	320, 240,	// RES_QVGA,	// 320x240
-	512, 400,	// RES_EGA,	// 512x400
-	640, 480, 	// RES_VGA,	// 640x480
-	640, 240, 	// RES_HVGA,	// 640x240
-};
-*/
 
 // Search PLL setup
 //  reqkhz ... required output frequency in kHz
