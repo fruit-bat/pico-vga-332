@@ -433,7 +433,7 @@ void ScanlineTypeInit(const sVmode* v)
 }
 
 // initialize videomode (returns False on bad configuration)
-void VgaInit(const sVmode* vmode, int width, int height)
+void VgaInit(const sVmode* vmode)
 {
 	queue_init_with_spinlock(
 	  &q_vga_valid,
@@ -443,7 +443,7 @@ void VgaInit(const sVmode* vmode, int width, int height)
 	);
 
 	// framebuffer = buf;
-	fbwidth = width;
+	fbwidth = vmode->width;
 
 	// stop old state
 	VgaTerm();
